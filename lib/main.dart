@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import 'firebase_options.dart';
 import 'providers/auth_provider.dart';
 import 'screens/auth/auth_wrapper.dart';
+import 'utils/app_colors.dart';
 
 void main() async {
   // Firebase needs Flutter's engine to be ready before we can talk to it.
@@ -36,7 +37,11 @@ class ALUConnectApp extends StatelessWidget {
         title: 'ALUConnect',
         debugShowCheckedModeBanner: false,
         theme: ThemeData(
-          colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+          // Seeding the whole theme from our one brand color (see
+          // utils/app_colors.dart) keeps buttons, links, and highlights
+          // visually consistent across every screen in the app.
+          colorScheme: ColorScheme.fromSeed(seedColor: AppColors.primary),
+          scaffoldBackgroundColor: Colors.white,
           useMaterial3: true,
         ),
         // AuthWrapper decides whether to show Login or the correct
