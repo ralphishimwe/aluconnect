@@ -35,6 +35,21 @@ dependencies:
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.8
 
+  # ---- Firebase packages ----
+  # firebase_core must be initialized before any other Firebase package is used.
+  firebase_core: ^3.8.0
+  # Handles sign up, login, logout and keeping track of the current user.
+  firebase_auth: ^5.3.3
+  # Cloud Firestore is our NoSQL database (student profiles, startup profiles,
+  # opportunities, applications, etc. will all live here in later steps).
+  cloud_firestore: ^5.5.0
+
+  # ---- State management ----
+  # Provider is the state management approach we chose for this project.
+  # It lets screens "listen" to changes (like login state) and rebuild
+  # automatically without manually passing data around everywhere.
+  provider: ^6.1.2
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
