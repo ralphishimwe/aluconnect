@@ -34,6 +34,8 @@ class OpportunityService {
     required String category,
     required String location,
     required String workType,
+    String description = '',
+    List<String> requiredSkills = const [],
   }) async {
     await _opportunities.add({
       'startupId': startupId,
@@ -42,6 +44,8 @@ class OpportunityService {
       'category': category,
       'location': location,
       'workType': workType,
+      'description': description,
+      'requiredSkills': requiredSkills,
       'isActive': true,
       'applicantCount': 0,
       'createdAt': FieldValue.serverTimestamp(),
@@ -58,12 +62,16 @@ class OpportunityService {
     required String location,
     required String workType,
     required bool isActive,
+    String description = '',
+    List<String> requiredSkills = const [],
   }) async {
     await _opportunities.doc(id).update({
       'title': title,
       'category': category,
       'location': location,
       'workType': workType,
+      'description': description,
+      'requiredSkills': requiredSkills,
       'isActive': isActive,
     });
   }

@@ -22,6 +22,8 @@ class Opportunity {
   final String category; // one of opportunityCategories, see utils/categories.dart
   final String location; // "Remote" or "On-site"
   final String workType; // "Full-time" or "Part-time"
+  final String description; // optional - what the role actually involves
+  final List<String> requiredSkills; // optional - e.g. ["Flutter", "Figma"]
   final bool isActive; // false once the startup closes this posting
   final int applicantCount; // how many students have applied so far
   final DateTime createdAt;
@@ -35,6 +37,8 @@ class Opportunity {
     required this.location,
     required this.workType,
     required this.createdAt,
+    this.description = '',
+    this.requiredSkills = const [],
     this.isActive = true,
     this.applicantCount = 0,
   });
@@ -52,6 +56,10 @@ class Opportunity {
       category: data['category'] as String? ?? '',
       location: data['location'] as String? ?? '',
       workType: data['workType'] as String? ?? '',
+      description: data['description'] as String? ?? '',
+      // Firestore stores lists as a plain List<dynamic>, so we rebuild it
+      // as a List<String> here rather than trusting the cast directly.
+      requiredSkills: List<String>.from(data['requiredSkills'] as List? ?? []),
       isActive: data['isActive'] as bool? ?? true,
       applicantCount: (data['applicantCount'] as num?)?.toInt() ?? 0,
       // createdAt can briefly be null right after creating a document with

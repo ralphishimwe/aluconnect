@@ -19,12 +19,14 @@ class ApplicationStatus {
 // opportunity - applying again just overwrites the same document instead of
 // creating a duplicate.
 //
-// A few fields (opportunityTitle, startupName, studentName) are copies of
-// data that also lives elsewhere (on the Opportunity/Student documents).
-// This is deliberate denormalization, the same pattern already used by
-// Opportunity.startupName: it lets the "My Applications" list and the
-// future "View Applicants" list render instantly from one query, without
-// needing a separate lookup per row.
+// A few fields (opportunityTitle, startupName, studentName, studentEmail)
+// are copies of data that also lives elsewhere (on the Opportunity/Student
+// documents). This is deliberate denormalization, the same pattern already
+// used by Opportunity.startupName: it lets the "My Applications" list and
+// the "View Applicants" list render instantly from one query, without
+// needing a separate lookup per row - important for View Applicants, since
+// a startup reviewing dozens of applicants shouldn't trigger dozens of
+// extra reads just to show a name and email.
 class Application {
   final String id;
   final String opportunityId;
@@ -33,6 +35,7 @@ class Application {
   final String startupName;
   final String studentId;
   final String studentName;
+  final String studentEmail;
   final String status;
   final DateTime appliedAt;
 
@@ -44,6 +47,7 @@ class Application {
     required this.startupName,
     required this.studentId,
     required this.studentName,
+    required this.studentEmail,
     required this.appliedAt,
     this.status = ApplicationStatus.underReview,
   });
@@ -58,6 +62,7 @@ class Application {
       startupName: data['startupName'] as String? ?? '',
       studentId: data['studentId'] as String? ?? '',
       studentName: data['studentName'] as String? ?? '',
+      studentEmail: data['studentEmail'] as String? ?? '',
       status: data['status'] as String? ?? ApplicationStatus.underReview,
       appliedAt: (data['appliedAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
     );

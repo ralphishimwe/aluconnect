@@ -68,7 +68,8 @@ class _OpportunityDetailScreenState extends State<OpportunityDetailScreen> {
   Future<void> _apply() async {
     final uid = context.read<AuthProvider>().appUser?.uid;
     final studentName = _studentProfile?.fullName;
-    if (uid == null || studentName == null) return;
+    final studentEmail = _studentProfile?.email;
+    if (uid == null || studentName == null || studentEmail == null) return;
 
     setState(() => _isSubmitting = true);
     try {
@@ -76,6 +77,7 @@ class _OpportunityDetailScreenState extends State<OpportunityDetailScreen> {
         opportunity: widget.opportunity,
         studentId: uid,
         studentName: studentName,
+        studentEmail: studentEmail,
       );
 
       if (!mounted) return;
@@ -219,6 +221,49 @@ class _OpportunityDetailScreenState extends State<OpportunityDetailScreen> {
                 'Posted ${timeAgo(opportunity.createdAt)}',
                 style: TextStyle(fontSize: 13, color: Colors.grey.shade500),
               ),
+              // Both of these are optional fields on the opportunity (a
+              // startup might skip them when posting), so we only show
+              // each section if there's actually something to show.
+              if (opportunity.description.isNotEmpty) ...[
+                const SizedBox(height: 24),
+                const Text(
+                  'Description',
+                  style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  opportunity.description,
+                  style: TextStyle(
+                    fontSize: 14,
+                    height: 1.4,
+                    color: Colors.grey.shade800,
+                  ),
+                ),
+              ],
+              if (opportunity.requiredSkills.isNotEmpty) ...[
+                const SizedBox(height: 24),
+                const Text(
+                  'Required skills',
+                  style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 8),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: opportunity.requiredSkills
+                      .map((skill) => Chip(
+                            label: Text(
+                              skill,
+                              style: const TextStyle(fontSize: 12.5),
+                            ),
+                            backgroundColor: AppColors.lightGrey,
+                            side: BorderSide.none,
+                            padding: const EdgeInsets.symmetric(horizontal: 4),
+                            materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                          ))
+                      .toList(),
+                ),
+              ],
               const SizedBox(height: 28),
               const Divider(),
               const SizedBox(height: 20),

@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../utils/app_colors.dart';
 import '../../widgets/coming_soon_placeholder.dart';
+import 'tabs/startup_applicants_tab.dart';
 import 'tabs/startup_dashboard_tab.dart';
 import 'tabs/startup_opportunities_tab.dart';
 
@@ -11,10 +12,9 @@ import 'tabs/startup_opportunities_tab.dart';
 // with 4 tabs (Home, Opportunities, Applicants, Profile), matching the
 // sample UI design we were given.
 //
-// Home and Opportunities are both fully built out and backed by real
-// Firestore data now. Applicants and Profile are still simple placeholders
-// - they will be replaced with real screens in later development steps
-// (View Applicants and Profile Screens respectively).
+// Home, Opportunities, and Applicants are all fully built out and backed
+// by real Firestore data now. Profile is still a placeholder - it'll be
+// replaced with a real screen in the upcoming Profile Screens step.
 class StartupHomeScreen extends StatefulWidget {
   const StartupHomeScreen({super.key});
 
@@ -40,13 +40,7 @@ class _StartupHomeScreenState extends State<StartupHomeScreen> {
   List<Widget> get _tabs => [
         StartupDashboardTab(onSeeAllOpportunities: _goToOpportunitiesTab),
         const StartupOpportunitiesTab(),
-        const ComingSoonPlaceholder(
-          icon: Icons.people_outline,
-          title: 'Applicants',
-          message:
-              'Review students who applied to your opportunities here '
-              'once the View Applicants step is built.',
-        ),
+        const StartupApplicantsTab(),
         const ComingSoonPlaceholder(
           icon: Icons.person_outline,
           title: 'Profile',

@@ -32,6 +32,12 @@ class OpportunityFormScreen extends StatefulWidget {
 class _OpportunityFormScreenState extends State<OpportunityFormScreen> {
   final _formKey = GlobalKey<FormState>();
   final _titleController = TextEditingController();
+  final _descriptionController = TextEditingController();
+  // Skills are typed as one comma-separated line (e.g. "Flutter, Figma,
+  // Firebase") instead of a more complex chip-input UI - simpler to build
+  // and easy for a startup to fill in quickly. We split it into a
+  // List<String> right before saving (see _parseSkills).
+  final _skillsController = TextEditingController();
   final OpportunityService _opportunityService = OpportunityService();
 
   // Dropdown choices for location and work type. Category comes from the
@@ -54,6 +60,8 @@ class _OpportunityFormScreenState extends State<OpportunityFormScreen> {
     super.initState();
     final existing = widget.existingOpportunity;
     _titleController.text = existing?.title ?? '';
+    _descriptionController.text = existing?.description ?? '';
+    _skillsController.text = existing?.requiredSkills.join(', ') ?? '';
     _category = existing?.category ?? opportunityCategories.first.label;
     _location = existing?.location ?? _locations.first;
     _workType = existing?.workType ?? _workTypes.first;
@@ -63,7 +71,20 @@ class _OpportunityFormScreenState extends State<OpportunityFormScreen> {
   @override
   void dispose() {
     _titleController.dispose();
+    _descriptionController.dispose();
+    _skillsController.dispose();
     super.dispose();
+  }
+
+  // Turns "Flutter, Figma,  Firebase ,," into ["Flutter", "Figma",
+  // "Firebase"] - splits on commas, trims whitespace off each one, and
+  // drops any empty entries left behind by stray/trailing commas.
+  List<String> _parseSkills() {
+    return _skillsController.text
+        .split(',')
+        .map((skill) => skill.trim())
+        .where((skill) => skill.isNotEmpty)
+        .toList();
   }
 
   Future<void> _save() async {
@@ -79,6 +100,8 @@ class _OpportunityFormScreenState extends State<OpportunityFormScreen> {
           location: _location,
           workType: _workType,
           isActive: _isActive,
+          description: _descriptionController.text.trim(),
+          requiredSkills: _parseSkills(),
         );
       } else {
         await _opportunityService.createOpportunity(
@@ -88,6 +111,8 @@ class _OpportunityFormScreenState extends State<OpportunityFormScreen> {
           category: _category,
           location: _location,
           workType: _workType,
+          description: _descriptionController.text.trim(),
+          requiredSkills: _parseSkills(),
         );
       }
 
@@ -186,6 +211,15 @@ class _OpportunityFormScreenState extends State<OpportunityFormScreen> {
                       Validators.required(value, fieldName: 'Title'),
                 ),
                 const SizedBox(height: 8),
+                // Optional - no validator. Not every posting needs a long
+                // description, so we don't force one.
+                CustomTextField(
+                  controller: _descriptionController,
+                  label: 'Description (optional)',
+                  icon: Icons.description_outlined,
+                  maxLines: 4,
+                ),
+                const SizedBox(height: 8),
                 _buildDropdown(
                   label: 'Category',
                   value: _category,
@@ -205,6 +239,14 @@ class _OpportunityFormScreenState extends State<OpportunityFormScreen> {
                   value: _workType,
                   items: _workTypes,
                   onChanged: (value) => setState(() => _workType = value!),
+                ),
+                const SizedBox(height: 8),
+                // Optional - comma-separated (e.g. "Flutter, Figma,
+                // Firebase"), turned into a List<String> in _parseSkills.
+                CustomTextField(
+                  controller: _skillsController,
+                  label: 'Required skills (comma separated, optional)',
+                  icon: Icons.checklist_outlined,
                 ),
                 // Only shown while editing - a brand-new posting is always
                 // open, so there's nothing to toggle yet at creation time.

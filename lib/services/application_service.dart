@@ -28,6 +28,7 @@ class ApplicationService {
     required Opportunity opportunity,
     required String studentId,
     required String studentName,
+    required String studentEmail,
   }) async {
     final applicationId = _applicationId(opportunity.id, studentId);
     final batch = _db.batch();
@@ -39,6 +40,7 @@ class ApplicationService {
       'startupName': opportunity.startupName,
       'studentId': studentId,
       'studentName': studentName,
+      'studentEmail': studentEmail,
       'status': ApplicationStatus.underReview,
       'appliedAt': FieldValue.serverTimestamp(),
     });
@@ -95,5 +97,29 @@ class ApplicationService {
       applications.sort((a, b) => b.appliedAt.compareTo(a.appliedAt));
       return applications;
     });
+  }
+
+  // Live list of every application submitted to ANY of this startup's
+  // opportunities, used on the "View Applicants" tab. The screen groups
+  // these client-side by opportunityId to show one section per posting.
+  // Same client-side-sort reasoning as streamByStudent above.
+  Stream<List<Application>> streamByStartup(String startupId) {
+    return _applications
+        .where('startupId', isEqualTo: startupId)
+        .snapshots()
+        .map((snapshot) {
+      final applications = snapshot.docs.map(Application.fromDoc).toList();
+      applications.sort((a, b) => b.appliedAt.compareTo(a.appliedAt));
+      return applications;
+    });
+  }
+
+  // Accepts or rejects an application (or flips it back to under_review,
+  // in principle) - called from the "View Applicants" tab. Deliberately
+  // left reversible: a startup can change their mind and call this again
+  // with a different status later, e.g. if they accidentally rejected the
+  // wrong applicant.
+  Future<void> updateStatus(Application application, String newStatus) async {
+    await _applications.doc(application.id).update({'status': newStatus});
   }
 }

@@ -12,6 +12,11 @@ class CustomTextField extends StatelessWidget {
   final TextInputType keyboardType;
   final String? Function(String?)? validator;
 
+  // How many lines tall this field is. Defaults to 1 (a normal single-line
+  // field, unchanged from before) - pass something higher (e.g. 4) for a
+  // multi-line field like an opportunity's description.
+  final int maxLines;
+
   const CustomTextField({
     super.key,
     required this.controller,
@@ -20,6 +25,7 @@ class CustomTextField extends StatelessWidget {
     this.obscureText = false,
     this.keyboardType = TextInputType.text,
     this.validator,
+    this.maxLines = 1,
   });
 
   @override
@@ -31,6 +37,7 @@ class CustomTextField extends StatelessWidget {
         obscureText: obscureText,
         keyboardType: keyboardType,
         validator: validator,
+        maxLines: maxLines,
         decoration: InputDecoration(
           labelText: label,
           prefixIcon: Icon(icon),
