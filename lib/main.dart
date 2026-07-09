@@ -43,6 +43,16 @@ class ALUConnectApp extends StatelessWidget {
           colorScheme: ColorScheme.fromSeed(seedColor: AppColors.primary),
           scaffoldBackgroundColor: Colors.white,
           useMaterial3: true,
+          // Setting this once here (instead of on every individual AppBar)
+          // means every screen with an AppBar automatically gets our brand
+          // color as its background, with white text/icons on top so it
+          // stays readable. If we ever change the brand color, every AppBar
+          // in the app updates together.
+          appBarTheme: const AppBarTheme(
+            backgroundColor: AppColors.primary,
+            foregroundColor: Colors.white,
+            elevation: 0,
+          ),
         ),
         // AuthWrapper decides whether to show Login or the correct
         // role-based Home screen, based on the live AuthProvider state.

@@ -1,23 +1,28 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../../../data/mock_posted_opportunities.dart';
+import '../../../models/opportunity.dart';
 import '../../../models/startup_model.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../services/firestore_service.dart';
+import '../../../services/opportunity_service.dart';
 import '../../../utils/app_colors.dart';
+import '../../../utils/verification_gate.dart';
+import '../../../widgets/app_top_bar.dart';
 import '../../../widgets/posted_opportunity_card.dart';
 import '../../../widgets/section_header.dart';
+import '../../opportunities/opportunity_form_screen.dart';
 
 // The "Home" tab a Startup sees after logging in. It mirrors the layout of
 // the Student's Home tab (header, section list) but shows the startup's own
 // postings instead of ones to browse, plus a couple of startup-specific
 // touches: an ALU verification badge and a small stats strip.
 //
-// The opportunity data shown here is still mock/placeholder data (see
-// lib/data/mock_posted_opportunities.dart) - wiring this up to this
-// startup's real postings from Firestore happens in the "Opportunity CRUD"
-// development step.
+// The opportunity list is now this startup's real postings from Firestore
+// (see OpportunityService.streamByStartup) instead of mock data. Only a
+// verified startup can actually reach the post form - see
+// utils/verification_gate.dart for the shared check used by both the "+"
+// button here and the one on the Opportunities tab.
 class StartupDashboardTab extends StatefulWidget {
   // Called when the user taps "See all" next to Your Opportunities.
   // startup_home_screen.dart passes in a function that switches the
@@ -32,7 +37,13 @@ class StartupDashboardTab extends StatefulWidget {
 
 class _StartupDashboardTabState extends State<StartupDashboardTab> {
   final FirestoreService _firestoreService = FirestoreService();
+  final OpportunityService _opportunityService = OpportunityService();
   StartupModel? _startupProfile;
+
+  // Only created once we know the startup's uid (see _loadStartupProfile),
+  // so we can't make this `late final` at declaration time like the
+  // student-side tabs do. It's still only created once per uid though.
+  Stream<List<Opportunity>>? _opportunitiesStream;
 
   @override
   void initState() {
@@ -41,46 +52,129 @@ class _StartupDashboardTabState extends State<StartupDashboardTab> {
   }
 
   // Fetches the logged-in startup's profile so we can greet them by name
-  // and show their real verification status instead of guessing.
+  // and show their real verification status instead of guessing. Also
+  // starts the live stream of this startup's own postings, now that we
+  // know their uid.
   Future<void> _loadStartupProfile() async {
     final uid = context.read<AuthProvider>().appUser?.uid;
     if (uid == null) return;
 
     final profile = await _firestoreService.getStartupProfile(uid);
     if (!mounted) return;
-    setState(() => _startupProfile = profile);
+    setState(() {
+      _startupProfile = profile;
+      _opportunitiesStream = _opportunityService.streamByStartup(uid);
+    });
   }
 
-  // Posting/editing opportunities doesn't exist yet (that's the
-  // "Opportunity CRUD" development step) - this just gives clear feedback
-  // instead of a button that silently does nothing.
-  void _showComingSoon(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+  // Opens the post form, but only if this startup is verified - see
+  // utils/verification_gate.dart.
+  void _openPostForm() {
+    final profile = _startupProfile;
+    final uid = context.read<AuthProvider>().appUser?.uid;
+    if (profile == null || uid == null) return;
+
+    requireVerifiedStartup(context, profile, () {
+      Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (context) => OpportunityFormScreen(
+            startupId: uid,
+            startupName: profile.name,
+          ),
+        ),
+      );
+    });
+  }
+
+  // Opens the edit/delete form for an existing posting. Editing an existing
+  // posting is always allowed (no verification check needed) since it was
+  // only ever created by a verified startup in the first place.
+  void _openEditForm(Opportunity opportunity) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => OpportunityFormScreen(
+          startupId: opportunity.startupId,
+          startupName: opportunity.startupName,
+          existingOpportunity: opportunity,
+        ),
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    // Small stats computed from the mock postings, standing in for what
-    // will eventually be a real query over this startup's Firestore data.
-    final activeCount =
-        mockPostedOpportunities.where((o) => o.isActive).length;
-    final totalApplicants = mockPostedOpportunities
-        .fold<int>(0, (sum, o) => sum + o.applicantCount);
+    // The colored top bar is now a fixed element outside the scroll view
+    // (instead of scrolling away with the rest of the content), so it
+    // reads as a proper "app bar" - same brand color as every real AppBar
+    // in the app (see main.dart's appBarTheme).
+    return Column(
+      children: [
+        _buildTopBar(context),
+        Expanded(
+          child: SafeArea(
+            top: false,
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Only show the pending-verification banner once we know
+                  // the profile actually isn't verified (avoids a flash of
+                  // the banner while the profile is still loading).
+                  if (_startupProfile != null && !_startupProfile!.isVerified)
+                    _buildVerificationBanner(),
+                  const SizedBox(height: 20),
+                  _buildOpportunitiesSection(),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
 
-    return SafeArea(
-      child: SingleChildScrollView(
-        padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
-        child: Column(
+  // Listens to this startup's live opportunities stream, and builds the
+  // stats row + "Your Opportunities" list from whatever it currently holds.
+  Widget _buildOpportunitiesSection() {
+    if (_opportunitiesStream == null) {
+      // Profile (and therefore the stream) hasn't loaded yet.
+      return const Padding(
+        padding: EdgeInsets.symmetric(vertical: 24),
+        child: Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    return StreamBuilder<List<Opportunity>>(
+      stream: _opportunitiesStream,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Padding(
+            padding: EdgeInsets.symmetric(vertical: 24),
+            child: Center(child: CircularProgressIndicator()),
+          );
+        }
+
+        if (snapshot.hasError) {
+          return const Padding(
+            padding: EdgeInsets.symmetric(vertical: 24),
+            child: Text(
+              'Could not load your opportunities. Please try again.',
+              style: TextStyle(color: Colors.grey),
+            ),
+          );
+        }
+
+        final opportunities = snapshot.data ?? [];
+        final activeCount = opportunities.where((o) => o.isActive).length;
+        final totalApplicants = opportunities.fold<int>(
+          0,
+          (sum, o) => sum + o.applicantCount,
+        );
+
+        return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildHeader(context),
-            const SizedBox(height: 16),
-            // Only show the pending-verification banner once we know the
-            // profile actually isn't verified (avoids a flash of the
-            // banner while the profile is still loading).
-            if (_startupProfile != null && !_startupProfile!.isVerified)
-              _buildVerificationBanner(),
-            const SizedBox(height: 20),
             _buildStatsRow(activeCount, totalApplicants),
             const SizedBox(height: 24),
             SectionHeader(
@@ -88,7 +182,7 @@ class _StartupDashboardTabState extends State<StartupDashboardTab> {
               onSeeAll: widget.onSeeAllOpportunities,
             ),
             const SizedBox(height: 12),
-            if (mockPostedOpportunities.isEmpty)
+            if (opportunities.isEmpty)
               const Padding(
                 padding: EdgeInsets.symmetric(vertical: 24),
                 child: Text(
@@ -97,62 +191,40 @@ class _StartupDashboardTabState extends State<StartupDashboardTab> {
                 ),
               )
             else
-              ...mockPostedOpportunities.map(
+              ...opportunities.map(
                 (opportunity) => PostedOpportunityCard(
                   opportunity: opportunity,
-                  onTap: () => _showComingSoon(
-                    'Full opportunity details & editing arrive in the '
-                    'Opportunity CRUD development step.',
-                  ),
+                  onTap: () => _openEditForm(opportunity),
                 ),
               ),
           ],
-        ),
-      ),
+        );
+      },
     );
   }
 
-  Widget _buildHeader(BuildContext context) {
+  Widget _buildTopBar(BuildContext context) {
     final startupName = _startupProfile?.name ?? '';
 
-    return Row(
-      children: [
-        // Wrapped in a Builder so this IconButton's context is below the
-        // Scaffold that owns the drawer (see startup_home_screen.dart).
-        Builder(
-          builder: (context) => IconButton(
-            icon: const Icon(Icons.menu),
-            onPressed: () => Scaffold.of(context).openDrawer(),
-          ),
+    return AppTopBar(
+      title: startupName,
+      // Wrapped in a Builder so this IconButton's context is below the
+      // Scaffold that owns the drawer (see startup_home_screen.dart).
+      leading: Builder(
+        builder: (context) => IconButton(
+          icon: const Icon(Icons.menu, color: Colors.white),
+          onPressed: () => Scaffold.of(context).openDrawer(),
         ),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                startupName.isEmpty
-                    ? 'Welcome back 👋'
-                    : 'Welcome back, $startupName 👋',
-                style:
-                    const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 4),
-              _buildVerificationTag(),
-            ],
-          ),
-        ),
-        // Lets a startup jump straight to posting - full posting flow
-        // arrives in the Opportunity CRUD step, so for now it just
-        // explains what's coming.
-        IconButton(
-          tooltip: 'Post an opportunity',
-          icon: const Icon(Icons.add_circle_outline, color: AppColors.primary),
-          onPressed: () => _showComingSoon(
-            'Posting new opportunities arrives in the Opportunity CRUD '
-            'development step.',
-          ),
-        ),
-      ],
+      ),
+      subtitle: _buildVerificationTag(),
+      // Lets a verified startup jump straight to posting a new
+      // opportunity. Unverified startups tapping this see an explanation
+      // dialog instead - see _openPostForm / requireVerifiedStartup.
+      trailing: IconButton(
+        tooltip: 'Post an opportunity',
+        icon: const Icon(Icons.add_circle_outline, color: Colors.white),
+        onPressed: _openPostForm,
+      ),
     );
   }
 

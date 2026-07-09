@@ -1,17 +1,25 @@
 import 'package:flutter/material.dart';
-import '../models/opportunity_model.dart';
+import '../models/opportunity.dart';
+import '../utils/avatar_style.dart';
+import '../utils/time_ago.dart';
 
 // A single opportunity listing card, used in the "Featured Opportunities"
-// list on the Home screen and (later) in the full Search/Discovery screen.
+// list on the Student Home screen and in the full Search screen.
 // Kept as its own widget so we only have to build this UI once.
 class OpportunityCard extends StatelessWidget {
-  final OpportunityModel opportunity;
+  final Opportunity opportunity;
   final VoidCallback? onTap;
 
   const OpportunityCard({super.key, required this.opportunity, this.onTap});
 
   @override
   Widget build(BuildContext context) {
+    // The startup didn't upload a logo image for this project, so we show
+    // colored initials instead - always the same initials/color for the
+    // same startup name (see utils/avatar_style.dart).
+    final initials = initialsFromName(opportunity.startupName);
+    final avatarColor = colorFromName(opportunity.startupName);
+
     return Card(
       elevation: 0,
       color: Colors.white,
@@ -33,12 +41,12 @@ class OpportunityCard extends StatelessWidget {
                 width: 48,
                 height: 48,
                 decoration: BoxDecoration(
-                  color: opportunity.avatarColor,
+                  color: avatarColor,
                   borderRadius: BorderRadius.circular(12),
                 ),
                 alignment: Alignment.center,
                 child: Text(
-                  opportunity.companyInitials,
+                  initials,
                   style: const TextStyle(
                     color: Colors.white,
                     fontWeight: FontWeight.bold,
@@ -59,7 +67,7 @@ class OpportunityCard extends StatelessWidget {
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      opportunity.companyName,
+                      opportunity.startupName,
                       style: TextStyle(color: Colors.grey.shade600),
                     ),
                     const SizedBox(height: 8),
@@ -74,15 +82,20 @@ class OpportunityCard extends StatelessWidget {
                           icon: Icons.work_outline,
                           label: opportunity.category,
                         ),
-                        const Spacer(),
-                        Text(
-                          opportunity.postedAgo,
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: Colors.grey.shade500,
-                          ),
+                        const SizedBox(width: 12),
+                        _MetaTag(
+                          icon: Icons.schedule,
+                          label: opportunity.workType,
                         ),
                       ],
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      timeAgo(opportunity.createdAt),
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.grey.shade500,
+                      ),
                     ),
                   ],
                 ),
@@ -95,8 +108,8 @@ class OpportunityCard extends StatelessWidget {
   }
 }
 
-// Small icon + label pair used for the location/category row under each
-// opportunity's title (e.g. a pin icon next to "Remote").
+// Small icon + label pair used for the location/category/work-type row
+// under each opportunity's title (e.g. a pin icon next to "Remote").
 class _MetaTag extends StatelessWidget {
   final IconData icon;
   final String label;

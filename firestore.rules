@@ -1,0 +1,141 @@
+// Firestore Security Rules - Authentication + Opportunity CRUD + Apply for
+// Opportunity phases
+//
+// These rules cover five collections:
+//   users         -> small record: { uid, email, role }
+//   students      -> full student profile
+//   startups      -> full startup profile
+//   opportunities -> internship/opportunity postings (see
+//                    lib/models/opportunity.dart and
+//                    lib/services/opportunity_service.dart)
+//   applications  -> a student's application to one opportunity (see
+//                    lib/models/application.dart and
+//                    lib/services/application_service.dart)
+//
+// HOW TO APPLY THESE:
+// Firebase console -> Firestore Database -> Rules tab -> paste this in ->
+// Publish.
+//
+// IMPORTANT NOTE ON "HARD BLOCK" VERIFICATION:
+// The assignment requires that only startups genuinely recognized within
+// the ALU ecosystem can post opportunities. The Flutter app already hides/
+// disables the "Post opportunity" button for unverified startups (see
+// lib/utils/verification_gate.dart), but a client-side check alone isn't
+// real security - someone could still call Firestore directly and skip the
+// app entirely. So the `create` rule below re-checks verification on the
+// server side too, by reading (`get()`) the startup's own profile document
+// and confirming `isVerified == true`. This is what makes it a genuine
+// "hard block" instead of just a UI suggestion.
+
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // users/{uid} -> small record: { uid, email, role }
+    match /users/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+
+    // students/{uid} -> full student profile
+    match /students/{studentId} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null && request.auth.uid == studentId;
+    }
+
+    // startups/{uid} -> full startup profile
+    match /startups/{startupId} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null && request.auth.uid == startupId;
+    }
+
+    // opportunities/{opportunityId} -> one posted opportunity
+    match /opportunities/{opportunityId} {
+      // Any logged-in user can read the list - students need this to browse
+      // and search, and startups need it to see their own postings.
+      allow read: if request.auth != null;
+
+      // Creating a new posting requires ALL of:
+      //   1. You're logged in.
+      //   2. The startupId on the new document is your own uid (you can't
+      //      post an opportunity pretending to be a different startup).
+      //   3. Your own startup profile document has isVerified == true.
+      allow create: if request.auth != null
+        && request.resource.data.startupId == request.auth.uid
+        && get(/databases/$(database)/documents/startups/$(request.auth.uid)).data.isVerified == true;
+
+      // Updating an opportunity happens in two different situations, so we
+      // allow EITHER of them:
+      //   1. The owning startup edits any field (title, isActive, etc.) -
+      //      same rule as before.
+      //   2. A student applies or withdraws, which calls
+      //      ApplicationService.apply/withdraw - those only ever touch the
+      //      `applicantCount` field on this document (see
+      //      lib/services/application_service.dart). We check THREE things
+      //      to keep this as narrow as possible:
+      //        - `affectedKeys().hasOnly(['applicantCount'])` - no other
+      //          field on this document can change through this path, so a
+      //          student can never sneak in a change to the title,
+      //          location, etc.
+      //        - the new value is exactly the old value +1 or -1 - a
+      //          student can't jump the count by any other amount.
+      //      NOTE: this still trusts that the caller is applying/
+      //      withdrawing "for real" (it doesn't check that a matching
+      //      `applications` document was actually created/deleted in the
+      //      same request) - a stricter version would verify that with a
+      //      Cloud Function trigger instead of a client-side counter. We
+      //      documented this as a known limitation/future improvement
+      //      rather than adding that complexity for this project.
+      allow update: if request.auth != null && (
+        resource.data.startupId == request.auth.uid ||
+        (
+          request.resource.data.diff(resource.data).affectedKeys().hasOnly(['applicantCount']) &&
+          (
+            request.resource.data.applicantCount == resource.data.applicantCount + 1 ||
+            request.resource.data.applicantCount == resource.data.applicantCount - 1
+          )
+        )
+      );
+
+      // Deleting is still startup-only.
+      allow delete: if request.auth != null
+        && resource.data.startupId == request.auth.uid;
+    }
+
+    // applications/{applicationId} -> one student's application to one
+    // opportunity. The document ID is always "{opportunityId}_{studentId}"
+    // (see ApplicationService._applicationId), which is what guarantees a
+    // student can only ever have one application per opportunity.
+    match /applications/{applicationId} {
+      // Only the student who applied, or the startup who owns the
+      // opportunity being applied to, can read an application - unlike
+      // opportunities (which anyone can browse), applications contain
+      // information about a specific student's interest that shouldn't be
+      // visible to every other logged-in user.
+      allow read: if request.auth != null && (
+        request.auth.uid == resource.data.studentId ||
+        request.auth.uid == resource.data.startupId
+      );
+
+      // Applying requires that the studentId on the new document is your
+      // own uid (you can't submit an application pretending to be someone
+      // else), and that new applications always start at 'under_review' -
+      // a student can't create one that's already 'accepted'.
+      allow create: if request.auth != null
+        && request.resource.data.studentId == request.auth.uid
+        && request.resource.data.status == 'under_review';
+
+      // Only the startup that owns the opportunity can update an
+      // application - this is how they'll move it to 'accepted' or
+      // 'rejected' in the upcoming View Applicants step. Students cannot
+      // edit their own application after submitting it (they can only
+      // withdraw it entirely - see `delete` below).
+      allow update: if request.auth != null
+        && request.auth.uid == resource.data.startupId;
+
+      // Withdrawing an application is only allowed by the student who
+      // submitted it.
+      allow delete: if request.auth != null
+        && request.auth.uid == resource.data.studentId;
+    }
+  }
+}

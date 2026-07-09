@@ -5,18 +5,16 @@ import '../../providers/auth_provider.dart';
 import '../../utils/app_colors.dart';
 import '../../widgets/coming_soon_placeholder.dart';
 import 'tabs/startup_dashboard_tab.dart';
+import 'tabs/startup_opportunities_tab.dart';
 
 // The Startup's main screen after logging in: a bottom-navigation shell
 // with 4 tabs (Home, Opportunities, Applicants, Profile), matching the
 // sample UI design we were given.
 //
-// Only the Home tab (StartupDashboardTab) is fully built out right now.
-// The other three tabs are simple placeholders - they will be replaced
-// with real screens in later development steps (Opportunity CRUD and
-// View Applicants respectively). This mirrors exactly how
-// student_home_screen.dart was built: get the navigation shell right now,
-// then swap each placeholder for a real screen one development step at a
-// time.
+// Home and Opportunities are both fully built out and backed by real
+// Firestore data now. Applicants and Profile are still simple placeholders
+// - they will be replaced with real screens in later development steps
+// (View Applicants and Profile Screens respectively).
 class StartupHomeScreen extends StatefulWidget {
   const StartupHomeScreen({super.key});
 
@@ -41,13 +39,7 @@ class _StartupHomeScreenState extends State<StartupHomeScreen> {
   // callbacks can't be part of a const widget.
   List<Widget> get _tabs => [
         StartupDashboardTab(onSeeAllOpportunities: _goToOpportunitiesTab),
-        const ComingSoonPlaceholder(
-          icon: Icons.work_outline,
-          title: 'Opportunities',
-          message:
-              'Posting and managing your opportunities arrives in the '
-              'Opportunity CRUD development step.',
-        ),
+        const StartupOpportunitiesTab(),
         const ComingSoonPlaceholder(
           icon: Icons.people_outline,
           title: 'Applicants',

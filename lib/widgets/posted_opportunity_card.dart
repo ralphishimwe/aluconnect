@@ -1,13 +1,15 @@
 import 'package:flutter/material.dart';
-import '../models/posted_opportunity_model.dart';
+import '../models/opportunity.dart';
 import '../utils/app_colors.dart';
+import '../utils/categories.dart';
+import '../utils/time_ago.dart';
 
 // A single "opportunity I posted" card, shown in the "Your Opportunities"
 // list on the Startup Home screen. Unlike OpportunityCard (which Students
 // see), this card shows things only the poster cares about: whether the
 // posting is still active, and how many students have applied.
 class PostedOpportunityCard extends StatelessWidget {
-  final PostedOpportunityModel opportunity;
+  final Opportunity opportunity;
   final VoidCallback? onTap;
 
   const PostedOpportunityCard({
@@ -48,7 +50,10 @@ class PostedOpportunityCard extends StatelessWidget {
                   borderRadius: BorderRadius.circular(12),
                 ),
                 alignment: Alignment.center,
-                child: Icon(opportunity.icon, color: Colors.white),
+                child: Icon(
+                  iconForCategory(opportunity.category),
+                  color: Colors.white,
+                ),
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -100,7 +105,7 @@ class PostedOpportunityCard extends StatelessWidget {
                         ),
                         const Spacer(),
                         Text(
-                          opportunity.postedAgo,
+                          timeAgo(opportunity.createdAt),
                           style: TextStyle(
                             fontSize: 12,
                             color: Colors.grey.shade500,

@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../utils/app_colors.dart';
 import '../../widgets/coming_soon_placeholder.dart';
+import 'tabs/my_applications_tab.dart';
 import 'tabs/search_tab.dart';
 import 'tabs/student_dashboard_tab.dart';
 
@@ -11,12 +12,9 @@ import 'tabs/student_dashboard_tab.dart';
 // with 4 tabs (Home, Search, Applications, Profile), matching the sample
 // UI design we were given.
 //
-// Only the Home tab (StudentDashboardTab) is fully built out right now.
-// The other three tabs are simple placeholders - they will be replaced
-// with real screens in later development steps (Opportunity Discovery,
-// Apply for Opportunity, and Profile Screens respectively). Building the
-// navigation shell now means we don't have to redo it later - each tab's
-// placeholder just gets swapped out for a real screen.
+// Home, Search, and Applications are all fully built out now, backed by
+// real Firestore data. Profile is still a placeholder - it'll be replaced
+// with a real screen in the upcoming Profile Screens step.
 class StudentHomeScreen extends StatefulWidget {
   const StudentHomeScreen({super.key});
 
@@ -40,13 +38,7 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> {
   List<Widget> get _tabs => [
         StudentDashboardTab(onSeeAllOpportunities: _goToSearchTab),
         const SearchTab(),
-        const ComingSoonPlaceholder(
-          icon: Icons.assignment_outlined,
-          title: 'Applications',
-          message:
-              "Track the opportunities you've applied to here once the "
-              'Apply for Opportunity step is built.',
-        ),
+        const MyApplicationsTab(),
         const ComingSoonPlaceholder(
           icon: Icons.person_outline,
           title: 'Profile',
