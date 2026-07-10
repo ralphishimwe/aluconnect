@@ -52,6 +52,10 @@ class ALUConnectApp extends StatelessWidget {
             backgroundColor: AppColors.primary,
             foregroundColor: Colors.white,
             elevation: 0,
+            // Without this, Android centers AppBar titles left by default
+            // (only iOS centers automatically) - setting it explicitly
+            // keeps every real AppBar's title centered on both platforms.
+            centerTitle: true,
           ),
         ),
         // AuthWrapper decides whether to show Login or the correct

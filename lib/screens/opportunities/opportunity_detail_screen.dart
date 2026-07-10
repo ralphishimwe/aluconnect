@@ -41,6 +41,17 @@ class _OpportunityDetailScreenState extends State<OpportunityDetailScreen> {
   StudentModel? _studentProfile;
   bool _isSubmitting = false;
 
+  // Optimistic local flag: flipped to true the instant _apply() succeeds,
+  // and back to false the instant _withdraw() succeeds. This is what makes
+  // this screen switch to "You applied" (or back to "Apply now") IMMEDIATELY,
+  // instead of waiting on Firestore's real-time listener to deliver its next
+  // snapshot - that's normally fast, but there's no guarantee it lands
+  // before the next frame is drawn. The stream below is still the real
+  // source of truth for anything that happens AFTER that (e.g. a startup
+  // accepting/rejecting while this screen is open); this flag only bridges
+  // the split-second gap right after our own write.
+  bool _justApplied = false;
+
   // Created once we know who's logged in, so we only subscribe to
   // Firestore a single time for this screen.
   late final Stream<Application?> _applicationStream;
@@ -79,6 +90,11 @@ class _OpportunityDetailScreenState extends State<OpportunityDetailScreen> {
         studentName: studentName,
         studentEmail: studentEmail,
       );
+
+      // Flip the optimistic flag right away, so _buildApplySection() shows
+      // "You applied" on this very next frame - we don't wait for the
+      // stream to tell us what we already know just happened.
+      if (mounted) setState(() => _justApplied = true);
 
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -128,6 +144,11 @@ class _OpportunityDetailScreenState extends State<OpportunityDetailScreen> {
     setState(() => _isSubmitting = true);
     try {
       await _applicationService.withdraw(application);
+
+      // Same optimistic-flag idea as _apply(), just in reverse - flip back
+      // to "Apply now" immediately instead of waiting on the stream.
+      if (mounted) setState(() => _justApplied = false);
+
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Application withdrawn.')),
@@ -282,13 +303,21 @@ class _OpportunityDetailScreenState extends State<OpportunityDetailScreen> {
     return StreamBuilder<Application?>(
       stream: _applicationStream,
       builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
+        if (snapshot.connectionState == ConnectionState.waiting && !_justApplied) {
           return const Center(child: CircularProgressIndicator());
         }
 
         final application = snapshot.data;
 
-        if (application == null) {
+        // We count this student as "applied" if EITHER the stream says so,
+        // OR we just successfully applied a split-second ago and the stream
+        // simply hasn't delivered its first event yet (see _justApplied's
+        // comment above). Without the second half of this check, the button
+        // would still say "Apply now" for a brief moment right after
+        // tapping it - which is exactly the bug we're fixing here.
+        final hasApplied = application != null || _justApplied;
+
+        if (!hasApplied) {
           // The student's profile is still loading in the background (see
           // _loadStudentProfile) - we need their name before we can submit
           // an application, so keep the button in its loading/disabled
@@ -301,6 +330,14 @@ class _OpportunityDetailScreenState extends State<OpportunityDetailScreen> {
             onPressed: profileReady ? _apply : null,
           );
         }
+
+        // In the brief window where _justApplied is true but the real
+        // Application document hasn't streamed in yet, we don't have a real
+        // "appliedAt"/status to show - fall back to sensible defaults
+        // (just now / under review) so the UI still looks correct. Once the
+        // stream catches up, `application` takes over completely.
+        final status = application?.status ?? ApplicationStatus.underReview;
+        final appliedAt = application?.appliedAt ?? DateTime.now();
 
         return Container(
           width: double.infinity,
@@ -319,18 +356,22 @@ class _OpportunityDetailScreenState extends State<OpportunityDetailScreen> {
                     style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(width: 10),
-                  StatusBadge(status: application.status),
+                  StatusBadge(status: status),
                 ],
               ),
               const SizedBox(height: 4),
               Text(
-                'Applied ${timeAgo(application.appliedAt)}',
+                'Applied ${timeAgo(appliedAt)}',
                 style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
               ),
               // Withdrawing only makes sense while the startup hasn't
               // decided yet - once accepted/rejected, the decision is
-              // final, so we hide this option.
-              if (application.status == ApplicationStatus.underReview) ...[
+              // final, so we hide this option. We also need the real
+              // Application object (not just the optimistic flag) to be
+              // able to withdraw, so this only appears once the stream has
+              // actually delivered it - normally near-instant.
+              if (application != null &&
+                  application.status == ApplicationStatus.underReview) ...[
                 const SizedBox(height: 12),
                 TextButton(
                   onPressed: _isSubmitting ? null : () => _withdraw(application),

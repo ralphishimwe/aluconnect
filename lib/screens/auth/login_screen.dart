@@ -69,17 +69,12 @@ class _LoginScreenState extends State<LoginScreen> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  const Icon(Icons.school, size: 72, color: Colors.deepPurple),
+                  const Icon(Icons.hub_sharp, size: 72, color: Colors.deepPurple),
                   const SizedBox(height: 12),
                   const Text(
                     'ALUConnect',
                     textAlign: TextAlign.center,
                     style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
-                  ),
-                  const Text(
-                    'Internships & opportunities within the ALU ecosystem',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(color: Colors.grey),
                   ),
                   const SizedBox(height: 32),
                   CustomTextField(

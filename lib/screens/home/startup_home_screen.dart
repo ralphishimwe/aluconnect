@@ -94,20 +94,29 @@ class _StartupHomeScreenState extends State<StartupHomeScreen> {
         child: Column(
           children: [
             DrawerHeader(
-              decoration: const BoxDecoration(color: AppColors.primary),
+              // No color override here anymore - this blends into the
+              // Drawer's own background instead of sitting in its own
+              // colored box, with just the icon/text left in brand indigo.
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
-                  const Icon(Icons.storefront, color: Colors.white, size: 40),
+                  const Icon(Icons.storefront, color: AppColors.primary, size: 40),
                   const SizedBox(height: 8),
                   Text(
                     email,
-                    style: const TextStyle(color: Colors.white, fontSize: 16),
+                    style: const TextStyle(
+                      color: AppColors.primary,
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
-                  const Text(
+                  Text(
                     'Startup account',
-                    style: TextStyle(color: Colors.white70, fontSize: 12),
+                    style: TextStyle(
+                      color: AppColors.primary.withOpacity(0.7),
+                      fontSize: 12,
+                    ),
                   ),
                 ],
               ),

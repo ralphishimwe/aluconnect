@@ -1,134 +1,77 @@
 import 'package:flutter/material.dart';
 import '../models/application.dart';
+import '../utils/avatar_style.dart';
 import '../utils/time_ago.dart';
+import 'status_badge.dart';
 
-// One applicant's row on the startup's "View Applicants" tab: name, email,
-// how long ago they applied, and Accept/Reject buttons.
-//
-// The decision is reversible (per the user's choice for this feature): both
-// buttons stay active no matter the current status, so a startup can change
-// their mind later. Whichever action matches the CURRENT status is shown
-// filled-in/solid; the other stays as an outline - a quick visual cue for
-// "this is the decision that's currently in effect" without hiding the
-// option to flip it.
+// One applicant's row inside an opportunity's list on the startup's "View
+// Applicants" tab: a compact, tappable tile (avatar initials, name, applied
+// time, current status, and a chevron) - tapping it opens the full
+// Applicant Detail screen, which is where Accept/Reject actually live now
+// (see screens/applicants/applicant_detail_screen.dart). This row itself is
+// just for scanning who applied and their current status at a glance.
 class ApplicantRow extends StatelessWidget {
   final Application application;
-  final VoidCallback onAccept;
-  final VoidCallback onReject;
+  final VoidCallback onTap;
 
   const ApplicantRow({
     super.key,
     required this.application,
-    required this.onAccept,
-    required this.onReject,
+    required this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
-    final isAccepted = application.status == ApplicationStatus.accepted;
-    final isRejected = application.status == ApplicationStatus.rejected;
+    final initials = initialsFromName(application.studentName);
+    final avatarColor = colorFromName(application.studentName);
 
-    return Card(
-      elevation: 0,
-      color: Colors.white,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-        side: BorderSide(color: Colors.grey.shade200),
-      ),
-      margin: const EdgeInsets.only(bottom: 12),
+    return InkWell(
+      onTap: onTap,
       child: Padding(
-        padding: const EdgeInsets.all(14),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+        padding: const EdgeInsets.symmetric(vertical: 10),
+        child: Row(
           children: [
-            Text(
-              application.studentName,
-              style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 2),
-            Text(
-              application.studentEmail,
-              style: TextStyle(fontSize: 13, color: Colors.grey.shade600),
-            ),
-            const SizedBox(height: 2),
-            Text(
-              'Applied ${timeAgo(application.appliedAt)}',
-              style: TextStyle(fontSize: 12, color: Colors.grey.shade500),
-            ),
-            const SizedBox(height: 12),
-            Row(
-              children: [
-                Expanded(
-                  child: _DecisionButton(
-                    label: 'Accept',
-                    color: Colors.green,
-                    isActive: isAccepted,
-                    onPressed: onAccept,
-                  ),
+            Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: avatarColor,
+                borderRadius: BorderRadius.circular(10),
+              ),
+              alignment: Alignment.center,
+              child: Text(
+                initials,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 13,
                 ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: _DecisionButton(
-                    label: 'Reject',
-                    color: Colors.red,
-                    isActive: isRejected,
-                    onPressed: onReject,
-                  ),
-                ),
-              ],
+              ),
             ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    application.studentName,
+                    style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    'Applied ${timeAgo(application.appliedAt)}',
+                    style: TextStyle(fontSize: 12, color: Colors.grey.shade500),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 8),
+            StatusBadge(status: application.status),
+            const SizedBox(width: 4),
+            Icon(Icons.chevron_right, color: Colors.grey.shade400),
           ],
         ),
       ),
-    );
-  }
-}
-
-// A small Accept/Reject button that switches between a solid, filled look
-// (when it's the currently active decision) and an outlined look
-// (otherwise) - both states remain tappable either way.
-class _DecisionButton extends StatelessWidget {
-  final String label;
-  final Color color;
-  final bool isActive;
-  final VoidCallback onPressed;
-
-  const _DecisionButton({
-    required this.label,
-    required this.color,
-    required this.isActive,
-    required this.onPressed,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    if (isActive) {
-      return ElevatedButton(
-        onPressed: onPressed,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: color,
-          foregroundColor: Colors.white,
-          elevation: 0,
-          padding: const EdgeInsets.symmetric(vertical: 10),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10),
-          ),
-        ),
-        child: Text(label, style: const TextStyle(fontSize: 13)),
-      );
-    }
-
-    return OutlinedButton(
-      onPressed: onPressed,
-      style: OutlinedButton.styleFrom(
-        foregroundColor: color,
-        side: BorderSide(color: color.withOpacity(0.5)),
-        padding: const EdgeInsets.symmetric(vertical: 10),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(10),
-        ),
-      ),
-      child: Text(label, style: const TextStyle(fontSize: 13)),
     );
   }
 }

@@ -1,10 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 
 import '../../../models/opportunity.dart';
-import '../../../models/student_model.dart';
-import '../../../providers/auth_provider.dart';
-import '../../../services/firestore_service.dart';
 import '../../../services/opportunity_service.dart';
 import '../../../utils/categories.dart';
 import '../../../widgets/app_top_bar.dart';
@@ -36,10 +32,8 @@ class StudentDashboardTab extends StatefulWidget {
 }
 
 class _StudentDashboardTabState extends State<StudentDashboardTab> {
-  final FirestoreService _firestoreService = FirestoreService();
   final OpportunityService _opportunityService = OpportunityService();
 
-  StudentModel? _studentProfile;
   int _selectedCategoryIndex = 0;
 
   // Created ONCE (not inside build()) so we subscribe to Firestore a single
@@ -56,23 +50,6 @@ class _StudentDashboardTabState extends State<StudentDashboardTab> {
     const _CategoryData(Icons.apps, 'All'),
     ...opportunityCategories.map((c) => _CategoryData(c.icon, c.label)),
   ];
-
-  @override
-  void initState() {
-    super.initState();
-    _loadStudentProfile();
-  }
-
-  // Fetches the logged-in student's profile so we can greet them by name
-  // (e.g. "Ralph") instead of showing their raw email address.
-  Future<void> _loadStudentProfile() async {
-    final uid = context.read<AuthProvider>().appUser?.uid;
-    if (uid == null) return;
-
-    final profile = await _firestoreService.getStudentProfile(uid);
-    if (!mounted) return;
-    setState(() => _studentProfile = profile);
-  }
 
   // Opens the full detail screen for an opportunity - this is where the
   // student actually applies (see opportunity_detail_screen.dart).
@@ -182,10 +159,11 @@ class _StudentDashboardTabState extends State<StudentDashboardTab> {
   }
 
   Widget _buildTopBar() {
-    final firstName = _studentProfile?.fullName.split(' ').first ?? '';
     // AppTopBar now always includes its own hamburger/menu icon, so there's
-    // nothing else to wire up here.
-    return AppTopBar(title: firstName);
+    // nothing else to wire up here. Shows the app's hub icon (same one as
+    // the login screen) instead of the student's name, in white to match
+    // the rest of the bar's text/icons.
+    return const AppTopBar(title: '', titleIcon: Icons.hub_sharp);
   }
 
   Widget _buildCategoriesRow() {
