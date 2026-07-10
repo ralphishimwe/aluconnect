@@ -3,18 +3,16 @@ import 'package:provider/provider.dart';
 
 import '../../providers/auth_provider.dart';
 import '../../utils/app_colors.dart';
-import '../../widgets/coming_soon_placeholder.dart';
 import 'tabs/my_applications_tab.dart';
 import 'tabs/search_tab.dart';
 import 'tabs/student_dashboard_tab.dart';
+import 'tabs/student_profile_tab.dart';
 
 // The Student's main screen after logging in: a bottom-navigation shell
 // with 4 tabs (Home, Search, Applications, Profile), matching the sample
 // UI design we were given.
 //
-// Home, Search, and Applications are all fully built out now, backed by
-// real Firestore data. Profile is still a placeholder - it'll be replaced
-// with a real screen in the upcoming Profile Screens step.
+// All four tabs are now fully built out, backed by real Firestore data.
 class StudentHomeScreen extends StatefulWidget {
   const StudentHomeScreen({super.key});
 
@@ -39,13 +37,7 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> {
         StudentDashboardTab(onSeeAllOpportunities: _goToSearchTab),
         const SearchTab(),
         const MyApplicationsTab(),
-        const ComingSoonPlaceholder(
-          icon: Icons.person_outline,
-          title: 'Profile',
-          message:
-              'Your profile details will live here once the Profile '
-              'Screens step is built.',
-        ),
+        const StudentProfileTab(),
       ];
 
   @override

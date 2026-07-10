@@ -10,13 +10,13 @@ import '../../../utils/categories.dart';
 import '../../../widgets/app_top_bar.dart';
 import '../../../widgets/category_chip.dart';
 import '../../../widgets/opportunity_card.dart';
-import '../../../widgets/search_bar_field.dart';
 import '../../../widgets/section_header.dart';
 import '../../opportunities/opportunity_detail_screen.dart';
 
-// The "Home" tab a Student sees after logging in. This matches the sample
-// UI design we were given: a greeting header, a search bar, a row of
-// category filters, and a "Featured Opportunities" list.
+// The "Home" tab a Student sees after logging in: a greeting header, a row
+// of category filters, and a "Featured Opportunities" list. There's no
+// search bar here anymore (removed per the user's request) - searching
+// still lives on its own dedicated Search tab (see search_tab.dart).
 //
 // The opportunity list is now real, live data from Firestore (see
 // OpportunityService.streamActiveOpportunities()) instead of mock data.
@@ -38,11 +38,6 @@ class StudentDashboardTab extends StatefulWidget {
 class _StudentDashboardTabState extends State<StudentDashboardTab> {
   final FirestoreService _firestoreService = FirestoreService();
   final OpportunityService _opportunityService = OpportunityService();
-
-  // Controls the search bar's text field. The Home tab doesn't filter
-  // anything itself when you type here - tapping it just jumps straight to
-  // the Search tab, where the same query can actually filter opportunities.
-  final TextEditingController _searchController = TextEditingController();
 
   StudentModel? _studentProfile;
   int _selectedCategoryIndex = 0;
@@ -79,14 +74,6 @@ class _StudentDashboardTabState extends State<StudentDashboardTab> {
     setState(() => _studentProfile = profile);
   }
 
-  // Every TextEditingController must be disposed when its widget is
-  // removed, otherwise it leaks memory.
-  @override
-  void dispose() {
-    _searchController.dispose();
-    super.dispose();
-  }
-
   // Opens the full detail screen for an opportunity - this is where the
   // student actually applies (see opportunity_detail_screen.dart).
   void _openDetail(Opportunity opportunity) {
@@ -106,7 +93,7 @@ class _StudentDashboardTabState extends State<StudentDashboardTab> {
     // in the app (see main.dart's appBarTheme).
     return Column(
       children: [
-        _buildTopBar(context),
+        _buildTopBar(),
         Expanded(
           child: SafeArea(
             top: false,
@@ -115,8 +102,6 @@ class _StudentDashboardTabState extends State<StudentDashboardTab> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _buildSearchBar(),
-                  const SizedBox(height: 24),
                   const SectionHeader(title: 'Categories'),
                   const SizedBox(height: 12),
                   _buildCategoriesRow(),
@@ -196,24 +181,11 @@ class _StudentDashboardTabState extends State<StudentDashboardTab> {
     );
   }
 
-  Widget _buildTopBar(BuildContext context) {
+  Widget _buildTopBar() {
     final firstName = _studentProfile?.fullName.split(' ').first ?? '';
-
-    return AppTopBar(
-      title: firstName,
-      // Wrapped in a Builder so this IconButton's context is below the
-      // Scaffold that owns the drawer (see student_home_screen.dart).
-      leading: Builder(
-        builder: (context) => IconButton(
-          icon: const Icon(Icons.menu, color: Colors.white),
-          onPressed: () => Scaffold.of(context).openDrawer(),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildSearchBar() {
-    return SearchBarField(controller: _searchController);
+    // AppTopBar now always includes its own hamburger/menu icon, so there's
+    // nothing else to wire up here.
+    return AppTopBar(title: firstName);
   }
 
   Widget _buildCategoriesRow() {

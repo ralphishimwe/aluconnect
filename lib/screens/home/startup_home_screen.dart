@@ -3,18 +3,16 @@ import 'package:provider/provider.dart';
 
 import '../../providers/auth_provider.dart';
 import '../../utils/app_colors.dart';
-import '../../widgets/coming_soon_placeholder.dart';
 import 'tabs/startup_applicants_tab.dart';
 import 'tabs/startup_dashboard_tab.dart';
 import 'tabs/startup_opportunities_tab.dart';
+import 'tabs/startup_profile_tab.dart';
 
 // The Startup's main screen after logging in: a bottom-navigation shell
 // with 4 tabs (Home, Opportunities, Applicants, Profile), matching the
 // sample UI design we were given.
 //
-// Home, Opportunities, and Applicants are all fully built out and backed
-// by real Firestore data now. Profile is still a placeholder - it'll be
-// replaced with a real screen in the upcoming Profile Screens step.
+// All four tabs are now fully built out, backed by real Firestore data.
 class StartupHomeScreen extends StatefulWidget {
   const StartupHomeScreen({super.key});
 
@@ -41,13 +39,7 @@ class _StartupHomeScreenState extends State<StartupHomeScreen> {
         StartupDashboardTab(onSeeAllOpportunities: _goToOpportunitiesTab),
         const StartupOpportunitiesTab(),
         const StartupApplicantsTab(),
-        const ComingSoonPlaceholder(
-          icon: Icons.person_outline,
-          title: 'Profile',
-          message:
-              'Your startup profile details will live here once the '
-              'Profile Screens step is built.',
-        ),
+        const StartupProfileTab(),
       ];
 
   @override

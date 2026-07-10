@@ -11,6 +11,7 @@ import '../../../utils/verification_gate.dart';
 import '../../../widgets/app_top_bar.dart';
 import '../../../widgets/posted_opportunity_card.dart';
 import '../../../widgets/section_header.dart';
+import '../../../widgets/verification_badge.dart';
 import '../../opportunities/opportunity_form_screen.dart';
 
 // The "Home" tab a Startup sees after logging in. It mirrors the layout of
@@ -109,7 +110,7 @@ class _StartupDashboardTabState extends State<StartupDashboardTab> {
     // in the app (see main.dart's appBarTheme).
     return Column(
       children: [
-        _buildTopBar(context),
+        _buildTopBar(),
         Expanded(
           child: SafeArea(
             top: false,
@@ -203,19 +204,13 @@ class _StartupDashboardTabState extends State<StartupDashboardTab> {
     );
   }
 
-  Widget _buildTopBar(BuildContext context) {
+  Widget _buildTopBar() {
     final startupName = _startupProfile?.name ?? '';
 
+    // AppTopBar now always includes its own hamburger/menu icon, so there's
+    // nothing else to wire up here.
     return AppTopBar(
       title: startupName,
-      // Wrapped in a Builder so this IconButton's context is below the
-      // Scaffold that owns the drawer (see startup_home_screen.dart).
-      leading: Builder(
-        builder: (context) => IconButton(
-          icon: const Icon(Icons.menu, color: Colors.white),
-          onPressed: () => Scaffold.of(context).openDrawer(),
-        ),
-      ),
       subtitle: _buildVerificationTag(),
       // Lets a verified startup jump straight to posting a new
       // opportunity. Unverified startups tapping this see an explanation
@@ -230,26 +225,12 @@ class _StartupDashboardTabState extends State<StartupDashboardTab> {
 
   // A small "Verified" / "Verification pending" tag under the greeting.
   // Hidden entirely until the profile has actually loaded, so we never
-  // show a wrong status.
+  // show a wrong status. The badge itself is a shared widget (see
+  // widgets/verification_badge.dart) - the Profile tab uses the exact same
+  // one, so both places always agree on wording/colors.
   Widget _buildVerificationTag() {
     if (_startupProfile == null) return const SizedBox.shrink();
-
-    final isVerified = _startupProfile!.isVerified;
-    final color = isVerified ? Colors.green : Colors.orange;
-    final icon = isVerified ? Icons.verified : Icons.hourglass_top;
-    final label = isVerified ? 'Verified ALU Startup' : 'Verification pending';
-
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Icon(icon, size: 14, color: color),
-        const SizedBox(width: 4),
-        Text(
-          label,
-          style: TextStyle(fontSize: 12, color: color, fontWeight: FontWeight.w600),
-        ),
-      ],
-    );
+    return VerificationBadge(isVerified: _startupProfile!.isVerified);
   }
 
   // Explains, in plain language, what "pending verification" means and why

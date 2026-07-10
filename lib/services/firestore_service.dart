@@ -44,6 +44,17 @@ class FirestoreService {
     return StudentModel.fromMap(doc.data()!);
   }
 
+  /// Live (real-time) version of getStudentProfile, used on the Profile
+  /// tab. This is what lets the Profile tab automatically show updated
+  /// info right after saving an edit, with no manual refresh code needed -
+  /// Firestore pushes the new document here the moment the write completes.
+  Stream<StudentModel?> streamStudentProfile(String uid) {
+    return _db.collection('students').doc(uid).snapshots().map((doc) {
+      if (!doc.exists) return null;
+      return StudentModel.fromMap(doc.data()!);
+    });
+  }
+
   // ---- "startups" collection ----
 
   Future<void> saveStartupProfile(StartupModel startup) async {
@@ -54,5 +65,14 @@ class FirestoreService {
     final doc = await _db.collection('startups').doc(uid).get();
     if (!doc.exists) return null;
     return StartupModel.fromMap(doc.data()!);
+  }
+
+  /// Live version of getStartupProfile - same reasoning as
+  /// streamStudentProfile above.
+  Stream<StartupModel?> streamStartupProfile(String uid) {
+    return _db.collection('startups').doc(uid).snapshots().map((doc) {
+      if (!doc.exists) return null;
+      return StartupModel.fromMap(doc.data()!);
+    });
   }
 }

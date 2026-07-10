@@ -13,12 +13,12 @@ import '../utils/app_colors.dart';
 // its own top bar using this shared widget, which guarantees they all look
 // consistent and use the same brand color as every real AppBar in the app
 // (see main.dart's `appBarTheme`).
+//
+// The hamburger/menu icon is now ALWAYS shown (baked in here, not passed in
+// by each tab) so the drawer is reachable from every tab, not just Home -
+// no need for every tab to redeclare its own Builder/IconButton for this.
 class AppTopBar extends StatelessWidget {
   final String title;
-
-  // Usually the hamburger menu icon that opens the drawer. Left out on
-  // tabs that don't need one (e.g. Search, Opportunities).
-  final Widget? leading;
 
   // A small action on the far right, e.g. the "+" post button.
   final Widget? trailing;
@@ -30,7 +30,6 @@ class AppTopBar extends StatelessWidget {
   const AppTopBar({
     super.key,
     required this.title,
-    this.leading,
     this.trailing,
     this.subtitle,
   });
@@ -49,15 +48,27 @@ class AppTopBar extends StatelessWidget {
           padding: const EdgeInsets.fromLTRB(8, 8, 16, 16),
           child: Row(
             children: [
-              // Reserve the same width whether or not there's a leading
-              // icon, so titles line up consistently across tabs.
-              if (leading != null) leading! else const SizedBox(width: 12),
+              // Wrapped in its own Builder so `Scaffold.of(context)` looks
+              // upward from HERE (finding the Scaffold that owns the
+              // drawer, defined in student_home_screen.dart /
+              // startup_home_screen.dart) rather than from this widget's
+              // own position in the tree.
+              Builder(
+                builder: (context) => IconButton(
+                  icon: const Icon(Icons.menu, color: Colors.white),
+                  onPressed: () => Scaffold.of(context).openDrawer(),
+                ),
+              ),
+              // Expanded + CrossAxisAlignment.end floats the title (and
+              // subtitle, if any) over to the right side of the bar,
+              // instead of sitting immediately next to the menu icon.
               Expanded(
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
                     Text(
                       title,
+                      textAlign: TextAlign.right,
                       style: const TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
@@ -71,7 +82,10 @@ class AppTopBar extends StatelessWidget {
                   ],
                 ),
               ),
-              if (trailing != null) trailing!,
+              if (trailing != null) ...[
+                const SizedBox(width: 8),
+                trailing!,
+              ],
             ],
           ),
         ),
