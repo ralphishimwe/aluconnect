@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 
-// A reusable "main action" button (e.g. Login, Register, Apply).
-// Shows a loading spinner in place of the label when `isLoading` is true,
-// so the user gets clear feedback while we wait for Firebase to respond.
+
 class PrimaryButton extends StatelessWidget {
   final String label;
   final VoidCallback? onPressed;

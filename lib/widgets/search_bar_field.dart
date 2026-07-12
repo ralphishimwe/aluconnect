@@ -1,12 +1,6 @@
 import 'package:flutter/material.dart';
 import '../utils/app_colors.dart';
 
-// A reusable search bar (grey rounded box + search icon + text field),
-// used on both the Home tab and the Search tab so they look identical.
-//
-// This widget itself doesn't know what to do with what's typed - it just
-// reports every change via [onChanged]. The screen that uses it decides
-// how to react (e.g. filter a list of opportunities).
 class SearchBarField extends StatelessWidget {
   final TextEditingController controller;
   final String hintText;

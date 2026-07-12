@@ -1,10 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-// This model represents a Student's full profile.
-// It is stored in Firestore under: students/{uid}
-// where {uid} is the same unique ID Firebase Authentication gives the user.
-// Using the auth uid as the document id makes it very easy to look up
-// "the profile that belongs to whoever is logged in right now".
 class StudentModel {
   final String uid;
   final String fullName;
@@ -28,8 +23,6 @@ class StudentModel {
     this.skills = const [],
   });
 
-  /// Turns this object into a Map<String, dynamic> so it can be written
-  /// straight into a Firestore document with `.set(student.toMap())`.
   Map<String, dynamic> toMap() {
     return {
       'uid': uid,
@@ -45,8 +38,6 @@ class StudentModel {
     };
   }
 
-  /// Rebuilds a StudentModel from Firestore document data.
-  /// Used whenever we read a student's profile back out of the database.
   factory StudentModel.fromMap(Map<String, dynamic> map) {
     return StudentModel(
       uid: map['uid'] as String,

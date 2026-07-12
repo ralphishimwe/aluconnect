@@ -1,7 +1,4 @@
-// Simple, dependency-free form validators used by our TextFormFields.
-// Each function returns `null` when the input is valid, or an error
-// String to display under the field when it isn't. This matches the
-// signature Flutter's `TextFormField(validator: ...)` expects.
+
 
 class Validators {
   static String? required(String? value, {String fieldName = 'This field'}) {

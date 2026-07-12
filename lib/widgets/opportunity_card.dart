@@ -3,9 +3,6 @@ import '../models/opportunity.dart';
 import '../utils/avatar_style.dart';
 import '../utils/time_ago.dart';
 
-// A single opportunity listing card, used in the "Featured Opportunities"
-// list on the Student Home screen and in the full Search screen.
-// Kept as its own widget so we only have to build this UI once.
 class OpportunityCard extends StatelessWidget {
   final Opportunity opportunity;
   final VoidCallback? onTap;
@@ -14,9 +11,6 @@ class OpportunityCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // The startup didn't upload a logo image for this project, so we show
-    // colored initials instead - always the same initials/color for the
-    // same startup name (see utils/avatar_style.dart).
     final initials = initialsFromName(opportunity.startupName);
     final avatarColor = colorFromName(opportunity.startupName);
 

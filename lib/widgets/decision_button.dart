@@ -1,21 +1,10 @@
 import 'package:flutter/material.dart';
 
-// A small Accept/Reject-style button that switches between a solid, filled
-// look (when it's the currently active decision) and an outlined look
-// (otherwise) - both states remain tappable either way, which is what
-// makes a decision reversible: a startup can flip it again later just by
-// tapping the other option.
-//
-// Shared by anywhere an application's status can be changed (currently
-// just the Applicant Detail screen).
 class DecisionButton extends StatelessWidget {
   final String label;
   final Color color;
   final bool isActive;
 
-  // Nullable on purpose - passing `null` (e.g. while a save is in
-  // progress) lets ElevatedButton/OutlinedButton show their own built-in
-  // disabled/greyed-out look, instead of us having to fake that state.
   final VoidCallback? onPressed;
 
   const DecisionButton({

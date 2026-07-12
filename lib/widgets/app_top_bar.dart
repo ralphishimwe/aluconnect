@@ -53,37 +53,14 @@ class AppTopBar extends StatelessWidget {
     return Container(
       width: double.infinity,
       color: AppColors.primary,
-      // SafeArea keeps the bar's content clear of the phone's status bar/
-      // notch, without adding bottom padding (the scrollable content below
-      // handles that itself).
       child: SafeArea(
         bottom: false,
         child: Padding(
           padding: const EdgeInsets.only(top: 8, bottom: 16),
           child: SizedBox(
             height: barHeight,
-            // IMPORTANT: this used to be a Row (menu icon, then an Expanded
-            //+ Center for the title, then an optional right-side cluster).
-            // That centered the title within whatever space was LEFT OVER
-            // after the menu icon - so on any screen without something on
-            // the right to balance it out, the title visually drifted off
-            // toward the icon side instead of sitting in the true middle
-            // of the bar.
-            //
-            // A Stack fixes this: the title has its own Center that spans
-            // the FULL bar width, completely independent of the menu icon
-            // or trailing button, which now float on top (via Positioned)
-            // instead of sharing a Row with it.
             child: Stack(
               children: [
-                // The title/icon (plus its optional subtitle stacked right
-                // below it) - always dead-center in the whole bar. Padded
-                // on both sides so a long title (e.g. a startup's name)
-                // truncates with "..." instead of visually running
-                // underneath the menu icon or the trailing button, since
-                // this Center now spans the FULL bar width (that's exactly
-                // what fixes the off-center bug, but it means long text
-                // needs its own guard rail here).
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 56),
                   child: Center(
@@ -103,10 +80,6 @@ class AppTopBar extends StatelessWidget {
                                   color: Colors.white,
                                 ),
                               ),
-                        // e.g. the "Verified ALU Startup" badge - sits
-                        // directly under the name instead of squeezed
-                        // beside the "+" button, so long names and the
-                        // badge never fight for the same horizontal space.
                         if (subtitle != null) ...[
                           const SizedBox(height: 4),
                           subtitle!,
@@ -120,11 +93,6 @@ class AppTopBar extends StatelessWidget {
                   left: 8,
                   top: 0,
                   bottom: 0,
-                  // Wrapped in its own Builder so `Scaffold.of(context)`
-                  // looks upward from HERE (finding the Scaffold that owns
-                  // the drawer, defined in student_home_screen.dart /
-                  // startup_home_screen.dart) rather than from this
-                  // widget's own position in the tree.
                   child: Builder(
                     builder: (context) => IconButton(
                       icon: const Icon(Icons.menu, color: Colors.white),
@@ -132,8 +100,6 @@ class AppTopBar extends StatelessWidget {
                     ),
                   ),
                 ),
-                // The "+"-style trailing action, pinned to the right edge -
-                // completely separate from the centered title/subtitle.
                 if (trailing != null)
                   Positioned(
                     right: 16,

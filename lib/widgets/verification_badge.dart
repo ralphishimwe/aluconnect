@@ -1,9 +1,5 @@
 import 'package:flutter/material.dart';
 
-// A small "Verified" / "Verification pending" badge, shown anywhere a
-// startup's verification status needs to appear (the Home tab's header,
-// and the Profile tab). Written once so both places always agree on the
-// exact wording, colors, and icon used.
 class VerificationBadge extends StatelessWidget {
   final bool isVerified;
 

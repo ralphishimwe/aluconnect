@@ -2,15 +2,11 @@ import 'package:flutter/material.dart';
 import '../models/application.dart';
 import '../utils/time_ago.dart';
 import 'status_badge.dart';
-
-// A single row on the "My Applications" tab: which opportunity the student
-// applied to, who posted it, its live status, and (only while still under
-// review) a way to withdraw.
 class ApplicationCard extends StatelessWidget {
   final Application application;
 
-  // Left null to hide the withdraw button entirely (e.g. if the caller
-  // doesn't want to allow it in some context).
+
+
   final VoidCallback? onWithdraw;
 
   const ApplicationCard({
@@ -21,8 +17,7 @@ class ApplicationCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Withdrawing only makes sense before a decision has been made -
-    // once accepted/rejected, that decision is final.
+
     final canWithdraw =
         onWithdraw != null && application.status == ApplicationStatus.underReview;
 

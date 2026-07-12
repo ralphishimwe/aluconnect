@@ -1,9 +1,4 @@
 import 'package:flutter/material.dart';
-
-// A reusable text field styled the same way everywhere in the app.
-// Instead of copy-pasting the same InputDecoration on every screen, every
-// form in ALUConnect uses this one widget. If we want to change how every
-// text field in the app looks, we only edit this file.
 class CustomTextField extends StatelessWidget {
   final TextEditingController controller;
   final String label;
@@ -12,9 +7,6 @@ class CustomTextField extends StatelessWidget {
   final TextInputType keyboardType;
   final String? Function(String?)? validator;
 
-  // How many lines tall this field is. Defaults to 1 (a normal single-line
-  // field, unchanged from before) - pass something higher (e.g. 4) for a
-  // multi-line field like an opportunity's description.
   final int maxLines;
 
   const CustomTextField({

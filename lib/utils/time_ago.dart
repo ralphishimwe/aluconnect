@@ -1,6 +1,4 @@
-// Turns a DateTime into a short, friendly relative-time string like
-// "2d ago", "5h ago", or "just now" - shown under each opportunity card
-// instead of a full date/time stamp, matching the sample UI design.
+
 String timeAgo(DateTime dateTime) {
   final difference = DateTime.now().difference(dateTime);
 

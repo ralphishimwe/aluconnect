@@ -8,11 +8,6 @@ import 'tabs/search_tab.dart';
 import 'tabs/student_dashboard_tab.dart';
 import 'tabs/student_profile_tab.dart';
 
-// The Student's main screen after logging in: a bottom-navigation shell
-// with 4 tabs (Home, Search, Applications, Profile), matching the sample
-// UI design we were given.
-//
-// All four tabs are now fully built out, backed by real Firestore data.
 class StudentHomeScreen extends StatefulWidget {
   const StudentHomeScreen({super.key});
 
@@ -21,24 +16,18 @@ class StudentHomeScreen extends StatefulWidget {
 }
 
 class _StudentHomeScreenState extends State<StudentHomeScreen> {
-  // Index into the bottom nav / _tabs list. 0 = Home, 1 = Search,
-  // 2 = Applications, 3 = Profile.
   int _currentIndex = 0;
 
-  // Named so `_goToSearchTab` below stays readable instead of a bare `1`.
   static const int _searchTabIndex = 1;
 
   void _goToSearchTab() => setState(() => _currentIndex = _searchTabIndex);
 
-  // Built as a getter (instead of a `const` field) because the Home tab
-  // now needs a callback - `_goToSearchTab` - wired into it, and callbacks
-  // can't be part of a const widget.
   List<Widget> get _tabs => [
-        StudentDashboardTab(onSeeAllOpportunities: _goToSearchTab),
-        const SearchTab(),
-        const MyApplicationsTab(),
-        const StudentProfileTab(),
-      ];
+    StudentDashboardTab(onSeeAllOpportunities: _goToSearchTab),
+    const SearchTab(),
+    const MyApplicationsTab(),
+    const StudentProfileTab(),
+  ];
 
   @override
   Widget build(BuildContext context) {
@@ -46,8 +35,6 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> {
 
     return Scaffold(
       drawer: _buildDrawer(authProvider),
-      // IndexedStack keeps every tab's state alive in the background
-      // instead of rebuilding it each time you switch tabs.
       body: IndexedStack(index: _currentIndex, children: _tabs),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _currentIndex,
@@ -61,10 +48,7 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> {
             activeIcon: Icon(Icons.home),
             label: 'Home',
           ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.search),
-            label: 'Search',
-          ),
+          BottomNavigationBarItem(icon: Icon(Icons.search), label: 'Search'),
           BottomNavigationBarItem(
             icon: Icon(Icons.assignment_outlined),
             label: 'Applications',
@@ -78,9 +62,6 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> {
     );
   }
 
-  // A simple side drawer (opened via the menu icon on the Home tab) that
-  // shows the logged-in account's email and lets them log out. This keeps
-  // logout easy to test without cluttering the Home screen's header.
   Widget _buildDrawer(AuthProvider authProvider) {
     final email = authProvider.appUser?.email ?? '';
 
@@ -89,9 +70,6 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> {
         child: Column(
           children: [
             DrawerHeader(
-              // No color override here anymore - this blends into the
-              // Drawer's own background instead of sitting in its own
-              // colored box, with just the icon/text left in brand indigo.
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisAlignment: MainAxisAlignment.end,

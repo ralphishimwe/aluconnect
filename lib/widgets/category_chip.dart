@@ -1,10 +1,6 @@
 import 'package:flutter/material.dart';
 import '../utils/app_colors.dart';
 
-// One item in the horizontally scrolling "Categories" row on the Home
-// screen (e.g. "All", "Development", "Design"...). Shows an icon in a
-// rounded square above a text label, and highlights itself in the brand
-// color when selected.
 class CategoryChip extends StatelessWidget {
   final IconData icon;
   final String label;

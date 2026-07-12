@@ -1,9 +1,5 @@
 import 'package:flutter/material.dart';
 import '../models/application.dart';
-
-// A small colored pill showing an application's status. Used on both the
-// Opportunity Detail screen and the "My Applications" list, so the
-// label/color choices only have to be written once.
 class StatusBadge extends StatelessWidget {
   final String status;
 
@@ -24,9 +20,6 @@ class StatusBadge extends StatelessWidget {
       background = Colors.red.shade50;
       textColor = Colors.red.shade700;
     } else {
-      // Anything else (including the default 'under_review') shows as
-      // "Under review" - this is also the safe fallback if the status
-      // field is ever missing or unrecognized.
       label = 'Under review';
       background = Colors.orange.shade50;
       textColor = Colors.orange.shade700;

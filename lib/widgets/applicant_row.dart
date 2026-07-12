@@ -3,13 +3,6 @@ import '../models/application.dart';
 import '../utils/avatar_style.dart';
 import '../utils/time_ago.dart';
 import 'status_badge.dart';
-
-// One applicant's row inside an opportunity's list on the startup's "View
-// Applicants" tab: a compact, tappable tile (avatar initials, name, applied
-// time, current status, and a chevron) - tapping it opens the full
-// Applicant Detail screen, which is where Accept/Reject actually live now
-// (see screens/applicants/applicant_detail_screen.dart). This row itself is
-// just for scanning who applied and their current status at a glance.
 class ApplicantRow extends StatelessWidget {
   final Application application;
   final VoidCallback onTap;

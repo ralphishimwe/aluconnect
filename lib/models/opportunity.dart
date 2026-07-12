@@ -1,18 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-// Represents one internship/opportunity posting, stored in Firestore under
-// the top-level "opportunities" collection (see services/opportunity_service.dart).
-//
-// One shared collection is used by both roles instead of keeping two
-// separate copies of the same data:
-//   - Startups query the ones where startupId == their own uid, for
-//     "Your Opportunities".
-//   - Students query all active ones, for "Featured Opportunities" and
-//     Search.
-//
-// This replaces the temporary OpportunityModel/PostedOpportunityModel and
-// mock data files used earlier while we were just building the screen
-// layouts - this is the real, Firestore-backed version.
 class Opportunity {
   final String id; // Firestore document id
   final String startupId; // uid of the startup that posted this
@@ -42,10 +29,6 @@ class Opportunity {
     this.isActive = true,
     this.applicantCount = 0,
   });
-
-  /// Builds an Opportunity straight from a Firestore document snapshot.
-  /// Every field falls back to a safe default if it's somehow missing, so
-  /// a malformed document can never crash the whole list.
   factory Opportunity.fromDoc(DocumentSnapshot<Map<String, dynamic>> doc) {
     final data = doc.data() ?? <String, dynamic>{};
     return Opportunity(
@@ -57,15 +40,10 @@ class Opportunity {
       location: data['location'] as String? ?? '',
       workType: data['workType'] as String? ?? '',
       description: data['description'] as String? ?? '',
-      // Firestore stores lists as a plain List<dynamic>, so we rebuild it
-      // as a List<String> here rather than trusting the cast directly.
       requiredSkills: List<String>.from(data['requiredSkills'] as List? ?? []),
       isActive: data['isActive'] as bool? ?? true,
       applicantCount: (data['applicantCount'] as num?)?.toInt() ?? 0,
-      // createdAt can briefly be null right after creating a document with
-      // FieldValue.serverTimestamp(), before the server confirms the write.
-      // Falling back to "now" means the UI never crashes during that split
-      // second.
+
       createdAt: (data['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
     );
   }

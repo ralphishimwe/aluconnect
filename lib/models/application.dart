@@ -1,32 +1,11 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-// The three states an application can be in. Kept as plain string
-// constants (not a Dart `enum`) because these are exactly the strings we
-// store in Firestore's `status` field - no extra to-string/from-string
-// conversion code needed anywhere.
 class ApplicationStatus {
   static const underReview = 'under_review';
   static const accepted = 'accepted';
   static const rejected = 'rejected';
 }
 
-// Represents one student's application to one opportunity, stored in
-// Firestore under the top-level "applications" collection.
-//
-// IMPORTANT: the document ID is always "{opportunityId}_{studentId}" (see
-// ApplicationService._applicationId) instead of a random auto-generated ID.
-// This guarantees a student can only ever have ONE application per
-// opportunity - applying again just overwrites the same document instead of
-// creating a duplicate.
-//
-// A few fields (opportunityTitle, startupName, studentName, studentEmail)
-// are copies of data that also lives elsewhere (on the Opportunity/Student
-// documents). This is deliberate denormalization, the same pattern already
-// used by Opportunity.startupName: it lets the "My Applications" list and
-// the "View Applicants" list render instantly from one query, without
-// needing a separate lookup per row - important for View Applicants, since
-// a startup reviewing dozens of applicants shouldn't trigger dozens of
-// extra reads just to show a name and email.
 class Application {
   final String id;
   final String opportunityId;

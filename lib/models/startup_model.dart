@@ -1,23 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-// This model represents a Startup/organization's full profile.
-// It is stored in Firestore under: startups/{uid}
-//
-// NOTE on verification:
-// The assignment requires that only startups genuinely recognized within
-// the ALU ecosystem should be able to use the platform. Rather than
-// blocking sign-up entirely (which would need a manual approval process
-// before anyone could even try the app), we let a startup register and
-// fill in an "ALU affiliation proof" field (e.g. their ALU Innovation Hub
-// registration number, or the name of the ALU staff/program sponsoring
-// them). Every new startup starts with `isVerified = false`.
-//
-// In a later step (Opportunity CRUD) we will only allow a startup to post
-// opportunities once `isVerified` is true. For this assignment, an admin
-// (you, acting as the platform owner) can flip that flag to `true` directly
-// in the Firebase console after checking the affiliation proof. This keeps
-// the workflow realistic without requiring us to build a full admin panel
-// this early in the project.
 class StartupModel {
   final String uid;
   final String name;

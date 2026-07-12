@@ -1,14 +1,5 @@
 import 'package:flutter/material.dart';
 import '../utils/app_colors.dart';
-
-// A reusable "Section title ............... See all" row, used above the
-// Categories and Featured Opportunities lists on the Home screen (and
-// probably future sections too, like "My Applications").
-//
-// The "See all" link only appears when a section actually has somewhere to
-// send the user (via [onSeeAll]). Categories doesn't need one - all
-// categories are already visible in their scrollable row - so we simply
-// don't pass a callback there and the link disappears.
 class SectionHeader extends StatelessWidget {
   final String title;
   final VoidCallback? onSeeAll;

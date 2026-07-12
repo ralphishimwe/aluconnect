@@ -4,10 +4,7 @@ import '../utils/app_colors.dart';
 import '../utils/categories.dart';
 import '../utils/time_ago.dart';
 
-// A single "opportunity I posted" card, shown in the "Your Opportunities"
-// list on the Startup Home screen. Unlike OpportunityCard (which Students
-// see), this card shows things only the poster cares about: whether the
-// posting is still active, and how many students have applied.
+
 class PostedOpportunityCard extends StatelessWidget {
   final Opportunity opportunity;
   final VoidCallback? onTap;
